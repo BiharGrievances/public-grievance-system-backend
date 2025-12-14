@@ -1,66 +1,43 @@
 import time
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, status
 
-# =====================================
-# SIMPLE IN-MEMORY RATE LIMITER (FREE)
-# =====================================
-# ✔ No Redis
-# ✔ No paid services
-# ✔ Good for India MVP
-# ⚠ Resets on server restart (acceptable)
-# =====================================
+# In-memory store (OK for free tier)
+_RATE_LIMIT_STORE = {}
 
-REQUESTS_PUBLIC = {}
-REQUESTS_ADMIN = {}
+def rate_limit(key: str, limit: int = 5, window: int = 60):
+    """
+    Generic rate limiter
 
-# Limits
-PUBLIC_LIMIT = 5        # login attempts
-ADMIN_LIMIT = 60        # admin API calls
+    key: unique identifier (ip, user, endpoint)
+    limit: max requests
+    window: time window in seconds
+    """
 
-TIME_WINDOW = 60        # seconds
-
-
-def _clean_old_requests(store: dict, ip: str, now: float):
-    store[ip] = [t for t in store[ip] if now - t < TIME_WINDOW]
-
-
-# -------------------------------------
-# PUBLIC RATE LIMIT (AUTH / LOGIN)
-# -------------------------------------
-def rate_limit(request: Request):
-    client_ip = request.client.host
     now = time.time()
 
-    if client_ip not in REQUESTS_PUBLIC:
-        REQUESTS_PUBLIC[client_ip] = []
+    # Initialize bucket
+    if key not in _RATE_LIMIT_STORE:
+        _RATE_LIMIT_STORE[key] = []
 
-    _clean_old_requests(REQUESTS_PUBLIC, client_ip, now)
+    # Remove expired timestamps
+    _RATE_LIMIT_STORE[key] = [
+        t for t in _RATE_LIMIT_STORE[key]
+        if now - t < window
+    ]
 
-    if len(REQUESTS_PUBLIC[client_ip]) >= PUBLIC_LIMIT:
+    # Check limit
+    if len(_RATE_LIMIT_STORE[key]) >= limit:
         raise HTTPException(
-            status_code=429,
-            detail="Too many login attempts. Please wait."
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many requests. Please try again later."
         )
 
-    REQUESTS_PUBLIC[client_ip].append(now)
+    # Record request
+    _RATE_LIMIT_STORE[key].append(now)
 
 
-# -------------------------------------
-# ADMIN RATE LIMIT (DASHBOARD / APIs)
-# -------------------------------------
-def rate_limit_admin(request: Request):
-    client_ip = request.client.host
-    now = time.time()
-
-    if client_ip not in REQUESTS_ADMIN:
-        REQUESTS_ADMIN[client_ip] = []
-
-    _clean_old_requests(REQUESTS_ADMIN, client_ip, now)
-
-    if len(REQUESTS_ADMIN[client_ip]) >= ADMIN_LIMIT:
-        raise HTTPException(
-            status_code=429,
-            detail="Too many admin requests. Slow down."
-        )
-
-    REQUESTS_ADMIN[client_ip].append(now)
+def rate_limit_admin(key: str):
+    """
+    Stricter admin limiter
+    """
+    rate_limit(key, limit=20, window=60)
