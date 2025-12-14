@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi.openapi.utils import get_openapi
 
 from app.database import Base, engine
-
+Base.metadata.create_all(bind=engine)
 # Routers
 from app.routers import (
     auth_router,
