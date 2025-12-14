@@ -33,20 +33,26 @@ def login(
     }
 @router.post("/bootstrap-admin")
 def bootstrap_admin(db: Session = Depends(get_db)):
-    from app.models.admin_user import AdminUser
-    from app.auth_middleware import hash_password
+    try:
+        existing = db.query(AdminUser).first()
+        if existing:
+            return {"message": "Admin already exists"}
 
-    admin = db.query(AdminUser).first()
-    if admin:
-        return {"message": "Admin already exists"}
+        admin = AdminUser(
+            username="Ashu",
+            password_hash=hash_password("Ashu")
+        )
+        db.add(admin)
+        db.commit()
+        db.refresh(admin)
 
-    admin = AdminUser(
-        username="Ashu",
-        password_hash=hash_password("Ashu")
-    )
+        return {
+            "message": "Admin created",
+            "username": admin.username
+        }
 
-    db.add(admin)
-    db.commit()
-    db.refresh(admin)
-
-    return {"message": "Admin created"}
+    except Exception as e:
+        return {
+            "error": "bootstrap_failed",
+            "detail": str(e)
+        }
