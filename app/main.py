@@ -4,17 +4,6 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi.openapi.utils import get_openapi
 
 from app.database import Base, engine
-Base.metadata.create_all(bind=engine)
-# Routers
-from app.routers import (
-    auth_router,
-    admin,
-    districts,
-    panchayats,
-    cities,
-    complaints,
-    attachments
-)
 
 # -------------------------------
 # DATABASE
@@ -62,7 +51,6 @@ def custom_openapi():
         }
     }
 
-    # Apply globally (admin routes enforce it)
     openapi_schema["security"] = [
         {"OAuth2PasswordBearer": []}
     ]
@@ -73,11 +61,11 @@ def custom_openapi():
 app.openapi = custom_openapi
 
 # -------------------------------
-# CORS (Frontend-friendly)
+# CORS
 # -------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # Restrict later in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -86,19 +74,27 @@ app.add_middleware(
 # -------------------------------
 # ROUTERS
 # -------------------------------
-app.include_router(auth_router.router)      # Auth FIRST
-app.include_router(admin.router)             # Admin (JWT protected)
+from app.routers import (
+    auth_router,
+    admin,
+    districts,
+    panchayats,
+    cities,
+    complaints,
+    attachments
+)
+
+app.include_router(auth_router.router)
+app.include_router(admin.router)
 app.include_router(districts.router)
 app.include_router(panchayats.router)
 app.include_router(cities.router)
-app.include_router(complaints.router)        # Public
-app.include_router(attachments.router)       # Public uploads
+app.include_router(complaints.router)
+app.include_router(attachments.router)
 
 # -------------------------------
 # ROOT
 # -------------------------------
 @app.get("/")
 def home():
-    return {
-        "message": "Public Grievance & Outreach System API is running"
-    }
+    return {"message": "Public Grievance & Outreach System API is running"}
