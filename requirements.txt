@@ -4,3 +4,4 @@ sqlalchemy
 python-multipart
 pydantic
 python-jose[cryptography]
+passlib[bcrypt]==1.7.4
