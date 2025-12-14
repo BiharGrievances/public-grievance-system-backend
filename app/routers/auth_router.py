@@ -31,3 +31,21 @@ def login(
         "access_token": access_token,
         "token_type": "bearer"
     }
+@router.post("/bootstrap-admin")
+def bootstrap_admin(db: Session = Depends(get_db)):
+    """
+    TEMPORARY — run ONCE on Render
+    """
+
+    existing = db.query(AdminUser).filter(AdminUser.username == "Ashu").first()
+    if existing:
+        return {"message": "Admin already exists"}
+
+    admin = AdminUser(
+        username="Ashu",
+        password_hash=hash_password("Ashu")
+    )
+    db.add(admin)
+    db.commit()
+
+    return {"message": "Admin created"}
