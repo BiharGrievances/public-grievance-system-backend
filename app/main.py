@@ -30,9 +30,10 @@ from app.routers import (
 app = FastAPI(
     title="Public Grievance & Outreach System",
     description=(
-        "An initiative by Dr. Ashutosh Singh — "
-        "a public grievance redressal and outreach platform "
-        "for citizen complaints, transparency, and administrative action in India."
+        "An initiative by Dr. Ashutosh Singh.\n\n"
+        "A public grievance redressal and outreach platform for citizen complaints, "
+        "transparency, and administrative action. Designed for India with free and "
+        "open infrastructure."
     ),
     version="1.0.0"
 )
