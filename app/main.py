@@ -87,4 +87,11 @@ app.include_router(attachments.router)
 
 @app.get("/")
 def home():
-    return {"message": "Public Grievance & Outreach System API is running"}
+    return {
+        "initiative": "AN INITIATIVE BY Dr. ASHUTOSH SINGH",
+        "description": (
+            "Public Grievance & Outreach System — a citizen-focused platform "
+            "for grievance redressal, transparency, and administrative action in Bihar and India."
+        ),
+        "status": "API is running"
+    }
