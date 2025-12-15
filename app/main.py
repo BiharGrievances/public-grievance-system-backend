@@ -28,7 +28,7 @@ from app.routers import (
 )
 
 app = FastAPI(
-    title="Public Grievance & Outreach System",
+    title="Public Grievance & Outreach System:-An initiative by Dr. Ashutosh Singh",
     description=(
         "An initiative by Dr. Ashutosh Singh.\n\n"
         "A public grievance redressal and outreach platform for citizen complaints, "
